@@ -387,6 +387,7 @@ rcvbuf 0
 remote $IP $PORT
 resolv-retry infinite
 nobind
+duplicate-cn
 persist-key
 persist-tun
 remote-cert-tls server
