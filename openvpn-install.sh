@@ -305,6 +305,8 @@ ifconfig-pool-persist ipp.txt" > /etc/openvpn/server.conf
 	echo "keepalive 10 120
 cipher AES-256-CBC
 user nobody
+duplicate-cn
+comp-lzo
 group $GROUPNAME
 persist-key
 persist-tun
@@ -387,7 +389,7 @@ rcvbuf 0
 remote $IP $PORT
 resolv-retry infinite
 nobind
-duplicate-cn
+comp-lzo
 persist-key
 persist-tun
 remote-cert-tls server
