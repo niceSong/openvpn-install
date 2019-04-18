@@ -75,6 +75,8 @@ if [[ -e /etc/openvpn/server.conf ]]; then
 			# Generates the custom client.ovpn
 			newclient "$CLIENT"
 			echo
+			cp /etc/openvpn/ccd/template /etc/openvpn/ccd/$CLIENT
+			echo
 			echo "Client $CLIENT added, configuration is available at:" ~/"$CLIENT.ovpn"
 			exit
 			;;
@@ -210,6 +212,22 @@ else
 	echo "   5) Verisign"
 	read -p "DNS [1-5]: " -e -i 1 DNS
 	echo
+	# set clientNetSegment
+        echo "Client netsegment is what?"
+        read -p "client netsegment: " -e -i 192.168.31.0 CLIENTNETSEG
+	echo
+	# set clientNetSegment Mask
+	echo "Client netsegment mask is what?"
+	read -p "client netsegment mask: " -e -i 255.255.255.0 CLIENTMASK
+	echo
+	# set localNetSegment
+        echo "local netsegment is what?"
+        read -p "local netsegment: " -e -i 172.31.0.0 LOCALNETSEG
+	echo
+	# set localNetSegment Mask
+	echo "local netsegment mask is what?"
+	read -p "local netsegment mask: " -e -i 255.255.0.0 LOCALMASK
+	echo
 	echo "Finally, tell me your name for the client certificate."
 	echo "Please, use one word only, no special characters."
 	read -p "Client name: " -e -i client CLIENT
@@ -255,6 +273,7 @@ YdEIqUuyyOP7uWrat2DX9GgdT0Kj3jlN9K5W7edjcrsZCwenyO4KbXCeAvzhzffi
 ssbzSibBsu/6iGtCOGEoXJf//////////wIBAg==
 -----END DH PARAMETERS-----' > /etc/openvpn/dh.pem
 	# Generate server.conf
+
 	echo "port $PORT
 proto $PROTOCOL
 dev tun
@@ -268,8 +287,16 @@ auth SHA512
 tls-auth ta.key 0
 topology subnet
 server 10.8.0.0 255.255.255.0
+push "route $LOCALNETSEG $LOCALMASK"
+client-config-dir ccd
+route $CLIENTNETSEG $CLIENTMASK
+client-to-client
+push "route $CLIENTNETSEG $CLIENTMASK"
 ifconfig-pool-persist ipp.txt" > /etc/openvpn/server.conf
-	echo 'push "redirect-gateway def1 bypass-dhcp"' >> /etc/openvpn/server.conf
+	#echo 'push "redirect-gateway def1 bypass-dhcp"' >> /etc/openvpn/server.conf
+	mkdir /etc/openvpn/ccd
+	echo "iroute $CLIENTNETSEG $CLIENTMASK" > /etc/openvpn/ccd/template
+	echo "iroute $CLIENTNETSEG $CLIENTMASK" > /etc/openvpn/ccd/$CLIENT
 	# DNS
 	case $DNS in
 		1)
@@ -407,3 +434,4 @@ verb 3" > /etc/openvpn/client-common.txt
 	echo "Your client configuration is available at:" ~/"$CLIENT.ovpn"
 	echo "If you want to add more clients, you simply need to run this script again!"
 fi
+
